@@ -105,7 +105,7 @@ To update the location map:
 
 * **Email:** [dhiraj7kr@gmail.com](mailto:dhiraj7kr@gmail.com)
 * **LinkedIn:** [linkedin.com/in/dhiraj7kr](https://linkedin.com/in/dhiraj7kr)
-* **GitHub:** [github.com/dhiraj7kr](https://github.com/dhiraj7kr)
+* **GitHub:** [github.com/dhiraj7kr](https://github.com/dhirajkrjp)
 
 ---
 
