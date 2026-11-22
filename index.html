@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D25 Assistant — AI Workspace Agent for Google Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            ghCanvas: '#010409',
+            ghSurface: '#0D1117',
+            ghElevated: '#161B22',
+            ghBorder: '#21262D',
+            ghBorderStrong: '#30363D',
+            ghText: '#F0F6FC',
+            ghMuted: '#8B949E',
+            ghSubtle: '#6E7681',
+            ghEmerald: '#3FB950',
+            ghEmeraldBtn: '#238636',
+            ghEmeraldHover: '#2EA043',
+            ghBlue: '#58A6FF',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background-color: #010409;
+      color: #F0F6FC;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .display-hero {
+      letter-spacing: -0.035em;
+    }
+
+    .eyebrow-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    /* Forest-black technical grid backdrop matching Screenshot 1 & 2 */
+    .emerald-grid-backdrop {
+      background-color: #050D09;
+      background-image:
+        radial-gradient(ellipse 75% 60% at 50% 45%, rgba(35, 134, 54, 0.16) 0%, rgba(5, 13, 9, 0) 75%),
+        linear-gradient(to right, rgba(63, 185, 80, 0.065) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(63, 185, 80, 0.065) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
+    }
+
+    .emerald-grid-subtle {
+      background-color: #050C08;
+      background-image:
+        radial-gradient(circle at 60% 40%, rgba(35, 134, 54, 0.14) 0%, transparent 70%),
+        linear-gradient(to right, rgba(63, 185, 80, 0.055) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(63, 185, 80, 0.055) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px, 24px 24px;
+    }
+
+    /* Primary & Secondary Button Micro-interactions */
+    .btn-oauth-white {
+      background-color: #F0F6FC;
+      color: #010409;
+      transition: background-color 0.14s ease, transform 0.1s ease;
+    }
+    .btn-oauth-white:hover {
+      background-color: #FFFFFF;
+    }
+    .btn-oauth-white:active {
+      transform: scale(0.992);
+    }
+
+    .btn-gh-green {
+      background-color: #238636;
+      color: #FFFFFF;
+      border: 1px solid rgba(240, 246, 252, 0.12);
+      transition: background-color 0.14s ease;
+    }
+    .btn-gh-green:hover {
+      background-color: #2EA043;
+    }
+
+    .btn-gh-secondary {
+      background-color: #21262D;
+      color: #F0F6FC;
+      border: 1px solid #30363D;
+      transition: background-color 0.14s ease, border-color 0.14s ease;
+    }
+    .btn-gh-secondary:hover {
+      background-color: #30363D;
+      border-color: #8B949E;
+    }
+
+    /* Custom subtle scrollbars inside app preview panes */
+    .app-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .app-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .app-scroll::-webkit-scrollbar-thumb {
+      background: #21262D;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-[#010409] text-[#F0F6FC] selection:bg-[#238636]/40 selection:text-white">
+
+  <!-- 1. TOP ANNOUNCEMENT BAR -->
+  <div id="announcement-bar" class="w-full bg-[#0D1117] border-b border-[#21262D] px-4 py-2 text-xs text-[#F0F6FC]">
+    <div class="max-w-[1280px] mx-auto flex items-center justify-between gap-3">
+      <div class="w-5 hidden sm:block"></div>
+      <p class="text-center text-[12px] sm:text-[13px] text-[#E6EDF3] leading-snug">
+        Ask &bull; Plan &bull; Act across Gmail, Calendar, Sheets &amp; Tasks — Now with Undoable Action History.
+        <button type="button" onclick="openModal('scopes')" class="underline underline-offset-4 text-[#F0F6FC] hover:text-[#58A6FF] font-medium ml-1 cursor-pointer">
+          View scopes
+        </button>
+      </p>
+      <button type="button" onclick="document.getElementById('announcement-bar').style.display='none'"
+        class="text-[#8B949E] hover:text-[#F0F6FC] p-1 rounded transition-colors cursor-pointer" aria-label="Dismiss announcement">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 w-full bg-[#010409]/95 backdrop-blur-sm border-b border-[#21262D]">
+    <div class="max-w-[1280px] mx-auto h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
+      <!-- Left: Geometric D25 Mark + Nav Links -->
+      <div class="flex items-center gap-6">
+        <a href="/" class="flex items-center gap-2.5 group">
+          <!-- Crisp Geometric Mark -->
+          <div class="w-8 h-8 rounded-full bg-[#F0F6FC] text-[#010409] flex items-center justify-center font-mono font-bold text-xs tracking-tighter">
+            D25
+          </div>
+          <span class="font-semibold text-[15px] tracking-tight text-[#F0F6FC] hidden sm:inline">D25</span>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-5 text-[14px] text-[#E6EDF3]">
+          <a href="#workspace-showcase" class="flex items-center gap-1 hover:text-[#8B949E] transition-colors">
+            <span>Capabilities</span>
+            <svg class="w-3.5 h-3.5 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </a>
+          <a href="#modes-section" class="flex items-center gap-1 hover:text-[#8B949E] transition-colors">
+            <span>Modes</span>
+            <svg class="w-3.5 h-3.5 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </a>
+          <button type="button" onclick="openModal('scopes')" class="flex items-center gap-1 hover:text-[#8B949E] transition-colors cursor-pointer">
+            <span>Security</span>
+            <svg class="w-3.5 h-3.5 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <button type="button" onclick="openModal('architecture')" class="hover:text-[#8B949E] transition-colors cursor-pointer">
+            Architecture
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right: Search Trigger + Sign in with Google -->
+      <div class="flex items-center gap-3">
+        <button type="button" id="nav-search-btn" onclick="focusComposerSearch()"
+          class="hidden sm:flex items-center justify-between w-48 lg:w-56 h-8 px-2.5 rounded-[6px] bg-[#0D1117] border border-[#30363D] hover:border-[#8B949E] text-xs text-[#8B949E] transition-colors cursor-pointer">
+          <span class="flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <span>Search commands</span>
+          </span>
+          <kbd class="font-mono text-[10px] px-1.5 py-0.2 rounded border border-[#30363D] text-[#8B949E]">/</kbd>
+        </button>
+
+        <button type="button" onclick="triggerGoogleOAuth(this)"
+          class="btn-oauth-white h-8 px-3.5 rounded-[6px] text-xs font-semibold flex items-center gap-2 cursor-pointer">
+          <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+          </svg>
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. ASYMMETRIC SPLIT HERO SECTION (Exact Bento Grid Match to Screenshot 1) -->
+  <section class="w-full border-b border-[#21262D]">
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] grid grid-cols-1 lg:grid-cols-2">
+      
+      <!-- Left Hero Cell -->
+      <div class="px-6 sm:px-12 lg:px-14 py-14 sm:py-20 lg:py-24 border-b lg:border-b-0 lg:border-r border-[#21262D] flex flex-col justify-center">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="eyebrow-mono text-[#8B949E] font-medium">AI WORKSPACE AGENT</span>
+          <span class="w-2.5 h-2.5 bg-[#3FB950] inline-block"></span>
+        </div>
+        <h1 class="display-hero text-[44px] sm:text-[56px] lg:text-[62px] font-semibold text-[#F0F6FC] leading-[1.06]">
+          D25 Assistant
+        </h1>
+      </div>
+
+      <!-- Right Hero Cell -->
+      <div class="px-6 sm:px-12 lg:px-14 py-12 sm:py-20 lg:py-24 flex flex-col justify-center">
+        <p class="text-[16px] sm:text-[17px] text-[#8B949E] leading-[1.6] max-w-lg mb-7">
+          Move from a single task to a cross-app workflow across your Google Workspace without losing context. Connect Gmail, Calendar, Sheets, and Tasks, automate recurring work, and approve every action before it runs.
+        </p>
+
+        <!-- Stacked Hero CTAs matching Screenshot 1 -->
+        <div class="flex flex-col items-start gap-3 w-full max-w-[300px]">
+          <button type="button" id="hero-oauth-btn" onclick="triggerGoogleOAuth(this)"
+            class="btn-oauth-white w-full h-11 px-4 rounded-[6px] text-[14px] font-semibold flex items-center justify-center gap-2.5 cursor-pointer">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+              <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <button type="button" onclick="openModal('scopes')"
+            class="btn-gh-secondary w-full h-11 px-4 rounded-[6px] text-[14px] font-medium flex items-center justify-center cursor-pointer">
+            Explore capabilities &amp; scopes
+          </button>
+        </div>
+
+        <!-- Inline OAuth Status Notice (shown when OAuth button clicked) -->
+        <div id="oauth-toast" class="hidden mt-4 w-full max-w-[360px] rounded-[6px] border border-[#30363D] bg-[#0D1117] px-3.5 py-2.5 text-xs text-[#E6EDF3] flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#3FB950] animate-pulse"></span>
+            <span id="oauth-toast-msg">Initializing Google OAuth 2.0 session...</span>
+          </div>
+          <button type="button" onclick="document.getElementById('oauth-toast').classList.add('hidden')" class="text-[#8B949E] hover:text-white font-mono text-[11px] cursor-pointer">
+            &times;
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4. FULL-WIDTH INTERACTIVE 3-PANE APPLICATION SHOWCASE (Screenshots 1 & 2) -->
+  <section id="workspace-showcase" class="w-full border-b border-[#21262D]">
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] emerald-grid-backdrop relative px-3 sm:px-8 lg:px-14 pt-8 sm:pt-12 pb-0 overflow-hidden">
+      
+      <!-- Pixel-style Corner Accents matching Screenshot 1 & 2 -->
+      <div class="hidden sm:grid grid-cols-2 w-4 h-4 absolute top-4 left-4 opacity-90" aria-hidden="true">
+        <span class="bg-[#3FB950]"></span>
+        <span class="bg-[#238636]"></span>
+        <span class="bg-[#1F6FEB]"></span>
+        <span class="bg-transparent"></span>
+      </div>
+      <div class="hidden sm:grid grid-cols-2 w-4 h-4 absolute top-4 right-4 opacity-90" aria-hidden="true">
+        <span class="bg-[#F85149]"></span>
+        <span class="bg-[#3FB950]"></span>
+        <span class="bg-[#D29922]"></span>
+        <span class="bg-[#58A6FF]"></span>
+      </div>
+
+      <!-- Realistic 3-Pane D25 Desktop/Web App Window -->
+      <div class="w-full rounded-t-[12px] border-t border-x border-[#30363D] bg-[#0D1117] shadow-2xl overflow-hidden">
+        
+        <!-- Window Chrome Titlebar -->
+        <div class="h-10 px-4 border-b border-[#21262D] bg-[#010409] flex items-center justify-between select-none">
+          <div class="flex items-center gap-2.5">
+            <span class="w-4 h-4 rounded-full bg-[#F0F6FC] text-[#010409] flex items-center justify-center font-mono font-bold text-[8px]">D25</span>
+            <span class="text-xs font-medium text-[#E6EDF3]">D25 Assistant</span>
+            <span class="hidden sm:inline font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#8B949E]">
+              project: D25
+            </span>
+          </div>
+          <!-- Window Controls (- □ ×) -->
+          <div class="flex items-center gap-4 text-[#8B949E] text-xs font-mono">
+            <span class="hover:text-[#F0F6FC] cursor-default">&minus;</span>
+            <span class="hover:text-[#F0F6FC] cursor-default">&#9633;</span>
+            <span class="hover:text-[#F0F6FC] cursor-default">&times;</span>
+          </div>
+        </div>
+
+        <!-- 3-Pane App Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[540px]">
+          
+          <!-- PANE 1: Left Navigation & Saved Sessions (3 cols) -->
+          <aside class="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-[#21262D] bg-[#010409]/70 flex flex-col justify-between p-3">
+            <div class="space-y-4">
+              <!-- Sidebar Top Controls -->
+              <div class="flex items-center justify-between px-1.5 text-[#8B949E]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
+                </svg>
+                <div class="flex items-center gap-2 text-xs">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <span>&lt;</span>
+                  <span>&gt;</span>
+                </div>
+              </div>
+
+              <!-- Primary App Nav -->
+              <div class="space-y-0.5 text-[13px]">
+                <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[6px] bg-[#161B22] text-[#F0F6FC] font-medium">
+                  <svg class="w-3.5 h-3.5 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                  <span>Home</span>
+                </div>
+                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/60 hover:text-[#E6EDF3]">
+                  <span class="flex items-center gap-2.5">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <span>Approvals</span>
+                  </span>
+                  <span class="font-mono text-[10px] px-1.5 rounded-full bg-[#238636]/20 text-[#3FB950]">1</span>
+                </div>
+                <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/60 hover:text-[#E6EDF3]">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span>Workflows</span>
+                </div>
+                <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/60 hover:text-[#E6EDF3]">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <span>Preferences</span>
+                </div>
+              </div>
+
+              <!-- WORKSPACES Section -->
+              <div class="pt-2">
+                <div class="px-2.5 flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#6E7681] mb-1.5">
+                  <span>Workspaces</span>
+                  <span>+</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5 px-2">
+                  <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#E6EDF3] flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA4335]"></span>@Gmail
+                  </span>
+                  <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#E6EDF3] flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#58A6FF]"></span>@Calendar
+                  </span>
+                  <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#E6EDF3] flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#3FB950]"></span>@Sheets
+                  </span>
+                  <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#E6EDF3] flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#D29922]"></span>@Tasks
+                  </span>
+                </div>
+              </div>
+
+              <!-- SESSIONS Section (Clickable saved chats) -->
+              <div class="pt-2">
+                <div class="px-2.5 flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#6E7681] mb-1.5">
+                  <span>Sessions</span>
+                  <span>+</span>
+                </div>
+                <div class="space-y-0.5 text-xs" id="session-list">
+                  <button type="button" onclick="selectSession(0)" id="sess-btn-0"
+                    class="w-full text-left px-2.5 py-1.5 rounded-[6px] bg-[#161B22] text-[#F0F6FC] font-medium flex items-center gap-2 truncate cursor-pointer">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#3FB950] shrink-0"></span>
+                    <span class="truncate">Q4 Budget &amp; HR Follow-up</span>
+                  </button>
+                  <button type="button" onclick="selectSession(1)" id="sess-btn-1"
+                    class="w-full text-left px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/50 hover:text-[#E6EDF3] flex items-center gap-2 truncate cursor-pointer">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#58A6FF] shrink-0"></span>
+                    <span class="truncate">Weekly Schedule Sync</span>
+                  </button>
+                  <button type="button" onclick="selectSession(2)" id="sess-btn-2"
+                    class="w-full text-left px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/50 hover:text-[#E6EDF3] flex items-center gap-2 truncate cursor-pointer">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#3FB950] shrink-0"></span>
+                    <span class="truncate">Sales Sheet Cleanup</span>
+                  </button>
+                  <button type="button" onclick="selectSession(3)" id="sess-btn-3"
+                    class="w-full text-left px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/50 hover:text-[#E6EDF3] flex items-center gap-2 truncate cursor-pointer">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#D29922] shrink-0"></span>
+                    <span class="truncate">Inbox Triage &amp; Tasks</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Signed-in User Footer -->
+            <div class="mt-4 pt-3 border-t border-[#21262D] px-2 flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-6 h-6 rounded-full bg-[#238636] text-white font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                  AT
+                </div>
+                <span class="text-xs font-medium text-[#E6EDF3] truncate">Anex Tsar</span>
+              </div>
+              <button type="button" onclick="openModal('scopes')" class="text-[#8B949E] hover:text-[#F0F6FC] cursor-pointer" title="Account & Scopes">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+            </div>
+          </aside>
+
+          <!-- PANE 2: Center Column - Agent Execution Trace & Composer (5 cols) -->
+          <div class="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-[#21262D] flex flex-col justify-between bg-[#0D1117]">
+            <div>
+              <!-- Center Pane Header -->
+              <div class="h-11 px-4 border-b border-[#21262D] flex items-center justify-between gap-2">
+                <span id="center-session-title" class="text-xs font-medium text-[#E6EDF3] truncate">
+                  Q4 Budget &amp; HR Follow-up
+                </span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span id="center-mode-pill" class="font-mono text-[10px] px-2 py-0.5 rounded bg-[#238636]/20 border border-[#3FB950]/40 text-[#3FB950]">
+                    Plan Mode
+                  </span>
+                </div>
+              </div>
+
+              <!-- User Message Bubble + Live Execution Trace -->
+              <div class="p-4 space-y-3.5 app-scroll overflow-y-auto max-h-[395px]">
+                <!-- User Request Box -->
+                <div id="center-user-bubble" class="rounded-[8px] border border-[#30363D] bg-[#161B22] p-3 text-xs text-[#E6EDF3] leading-relaxed">
+                  Check HR's Q4 sync email, verify our Friday afternoon availability, cross-check Hiring_Tracker_2026, and prepare the calendar invite for approval.
+                </div>
+
+                <!-- Step-by-Step Tool Execution Trace (Styled like Screenshot 2) -->
+                <div id="center-trace-list" class="space-y-2 font-mono text-[11px] text-[#8B949E]">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[#3FB950]">&gt;_</span>
+                    <span>Search Gmail: <span class="text-[#E6EDF3]">"Q4 sync HR"</span></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[#6E7681]">&#9675;</span>
+                    <span>Thought for 3s</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[#58A6FF]">&#128197;</span>
+                    <span>Read Calendar: <span class="text-[#E6EDF3]">Friday, Nov 27 availability</span></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[#3FB950]">&#128202;</span>
+                    <span>Inspect Sheet: <span class="text-[#E6EDF3]">Hiring_Tracker_2026!A1:D18</span></span>
+                  </div>
+                </div>
+
+                <!-- Highlighted Plan Card (Emerald border accent matching Screenshot 2) -->
+                <div id="center-plan-card" class="rounded-[8px] border border-[#3FB950]/40 bg-[#07130E] p-3">
+                  <div class="flex items-center gap-2 text-xs font-medium text-[#3FB950] mb-1">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
+                    <span>Plan created</span>
+                  </div>
+                  <p id="center-plan-desc" class="text-[11px] text-[#8B949E] leading-relaxed">
+                    Cross-app meeting &amp; task workflow ready. Review Approval #25 on the right before sending invites.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Bottom Composer Box -->
+            <div class="p-3 border-t border-[#21262D] bg-[#010409]/40">
+              <div class="rounded-[8px] border border-[#30363D] bg-[#161B22] p-2.5 focus-within:border-[#58A6FF] transition-colors">
+                <input id="demo-composer-input" type="text"
+                  placeholder="Ask anything. Use @ for services or &amp; for saved chats..."
+                  onkeydown="if(event.key==='Enter') handleDemoSend()"
+                  class="w-full bg-transparent text-xs text-[#F0F6FC] placeholder-[#6E7681] focus:outline-none mb-2.5" />
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="insertMention('@Gmail ')" class="w-5 h-5 rounded bg-[#21262D] hover:bg-[#30363D] text-[#8B949E] hover:text-[#F0F6FC] flex items-center justify-center text-xs cursor-pointer" title="Insert @ service mention">+</button>
+                    <button type="button" id="composer-mode-toggle" onclick="cycleComposerMode()"
+                      class="px-2 py-0.5 rounded bg-[#21262D] hover:bg-[#30363D] text-[11px] text-[#E6EDF3] font-medium flex items-center gap-1 cursor-pointer">
+                      <span id="composer-mode-label">Plan</span>
+                      <svg class="w-3 h-3 text-[#8B949E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <span class="hidden sm:inline font-mono text-[10px] text-[#6E7681]">Gemini 2.5 Flash</span>
+                  </div>
+                  <button type="button" onclick="handleDemoSend()"
+                    class="w-6 h-6 rounded-full bg-[#21262D] hover:bg-[#3FB950] hover:text-[#010409] text-[#8B949E] flex items-center justify-center transition-colors cursor-pointer" aria-label="Send prompt">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 3: Right Column - Live Approval Card & Grounded Source Preview (4 cols) -->
+          <div class="lg:col-span-4 bg-[#0D1117] flex flex-col">
+            <!-- Top Tab Strip matching Screenshot 2 -->
+            <div class="h-11 px-3 border-b border-[#21262D] flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 overflow-x-auto">
+                <span class="px-2 py-1 text-[#8B949E] flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  Plan
+                </span>
+                <span class="px-2.5 py-1 rounded-full bg-[#161B22] border border-[#30363D] text-[#F0F6FC] font-medium flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#3FB950]"></span>
+                  Approval #25
+                </span>
+                <span class="px-2 py-1 text-[#8B949E] font-mono text-[11px]">@Gmail</span>
+              </div>
+              <span class="text-[#8B949E] font-mono">+</span>
+            </div>
+
+            <!-- Right Pane Body -->
+            <div id="right-pane-body" class="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto app-scroll">
+              <!-- Title & Status Badge -->
+              <div>
+                <h3 id="approval-title" class="text-[17px] font-semibold text-[#F0F6FC] leading-snug">
+                  Schedule Q4 Hiring Sync &amp; Send Confirmation <span class="text-[#8B949E] font-normal">#25</span>
+                </h3>
+                <div class="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span id="approval-status-pill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#238636] text-white">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                    Pending Approval
+                  </span>
+                  <span class="text-[11px] text-[#8B949E]">
+                    Services: <strong class="text-[#E6EDF3] font-medium">Gmail + Calendar</strong>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Metadata Pills -->
+              <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                <span class="px-2.5 py-0.5 rounded-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3]">
+                  Undoable Action
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#161B22] border border-[#30363D] text-[#8B949E]">
+                  2 grounded sources
+                </span>
+              </div>
+
+              <!-- Grounded Source Note Box (Blue-bordered callout matching Screenshot 2) -->
+              <div class="rounded-[8px] border border-[#30363D] bg-[#161B22]/60 p-3.5">
+                <div class="flex items-center justify-between text-xs text-[#8B949E] mb-2 pb-2 border-b border-[#21262D]">
+                  <span class="font-medium text-[#E6EDF3] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#EA4335]"></span>
+                    hr@company.com &middot; <span class="text-[#8B949E] font-normal">14m ago</span>
+                  </span>
+                  <span class="font-mono text-[10px] text-[#58A6FF]">Gmail Source &nearr;</span>
+                </div>
+
+                <div class="border-l-[3px] border-[#1F6FEB] pl-3 py-0.5 space-y-1">
+                  <div class="flex items-center gap-1.5 text-xs font-semibold text-[#58A6FF]">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>Grounded Source &middot; Re: Q4 Sync Availability</span>
+                  </div>
+                  <p id="approval-source-quote" class="text-xs text-[#E6EDF3] leading-relaxed">
+                    "Friday, Nov 27 at 3:00 PM IST works for the entire hiring panel. Please send the calendar invite and confirm headcount from Hiring_Tracker_2026."
+                  </p>
+                </div>
+              </div>
+
+              <!-- Proposed Action Summary + Interactive Approve / Undo Controls -->
+              <div class="space-y-2.5">
+                <h4 class="text-sm font-semibold text-[#F0F6FC]">Proposed Calendar &amp; Email Action</h4>
+                <div id="approval-details-box" class="rounded-[6px] border border-[#21262D] bg-[#010409] p-3 font-mono text-[11px] text-[#8B949E] space-y-1">
+                  <div><span class="text-[#6E7681]">Event:</span> <span class="text-[#E6EDF3]">Q4 Hiring Sync</span></div>
+                  <div><span class="text-[#6E7681]">When:</span> <span class="text-[#E6EDF3]">Fri, Nov 27 &middot; 15:00 – 15:45 IST</span></div>
+                  <div><span class="text-[#6E7681]">Guests:</span> <span class="text-[#E6EDF3]">hr@company.com, lead@company.com</span></div>
+                </div>
+
+                <!-- Interactive Action Buttons -->
+                <div id="approval-action-bar" class="pt-1 flex items-center gap-2">
+                  <button type="button" onclick="approveWorkspaceAction()"
+                    class="btn-gh-green flex-1 h-9 px-3 rounded-[6px] text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span>Approve &amp; Run</span>
+                  </button>
+                  <button type="button" onclick="rejectWorkspaceAction()"
+                    class="btn-gh-secondary h-9 px-3.5 rounded-[6px] text-xs font-medium text-[#E6EDF3] cursor-pointer">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 3-COLUMN PLATFORM / MODE BAR BELOW THE APP WINDOW (Bottom of Screenshot 2) -->
+  <section id="modes-section" class="w-full border-b border-[#21262D]">
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] grid grid-cols-1 md:grid-cols-3">
+      
+      <!-- Column 1: Ask Mode (Top green highlight bar matching Screenshot 2) -->
+      <div class="px-6 sm:px-8 py-8 border-b md:border-b-0 md:border-r border-[#21262D] relative">
+        <div class="absolute top-0 left-6 right-6 h-[2px] bg-[#3FB950]"></div>
+        <div class="mb-4 text-[#F0F6FC]">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+        </div>
+        <h3 class="text-[16px] font-semibold text-[#F0F6FC] mb-1.5">Ask Mode</h3>
+        <p class="text-[13px] text-[#8B949E] leading-relaxed">
+          Read-only search and summarization across Gmail, Calendar, Sheets &amp; Tasks with grounded source cards.
+        </p>
+      </div>
+
+      <!-- Column 2: Plan Mode -->
+      <div class="px-6 sm:px-8 py-8 border-b md:border-b-0 md:border-r border-[#21262D]">
+        <div class="mb-4 text-[#8B949E]">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+          </svg>
+        </div>
+        <h3 class="text-[16px] font-semibold text-[#F0F6FC] mb-1.5">Plan Mode</h3>
+        <p class="text-[13px] text-[#8B949E] leading-relaxed">
+          Multi-step execution plans that break down complex requests and ask clarifying questions before any changes.
+        </p>
+      </div>
+
+      <!-- Column 3: Act Mode -->
+      <div class="px-6 sm:px-8 py-8">
+        <div class="mb-4 text-[#8B949E]">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <h3 class="text-[16px] font-semibold text-[#F0F6FC] mb-1.5">Act Mode</h3>
+        <p class="text-[13px] text-[#8B949E] leading-relaxed">
+          Autopilot cross-app workflows protected by explicit approval cards and 1-click undo history.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 6. WORKSPACE INTEGRATION ICON STRIP (Exact match to Top of Screenshot 3) -->
+  <section class="w-full border-b border-[#21262D]">
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] px-6 py-12 relative">
+      <div class="text-center mb-8">
+        <span class="eyebrow-mono text-[#8B949E]">CONNECTED ACROSS YOUR GOOGLE WORKSPACE</span>
+      </div>
+
+      <!-- 6 Workspace & AI Icons Row -->
+      <div id="workspace-icon-strip" class="flex flex-wrap items-center justify-center gap-10 sm:gap-16 lg:gap-20 transition-opacity duration-300">
+        <!-- Gmail -->
+        <div class="flex flex-col items-center gap-2 group" title="Gmail API">
+          <svg class="w-7 h-7 text-[#EA4335] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Gmail</span>
+        </div>
+
+        <!-- Google Calendar -->
+        <div class="flex flex-col items-center gap-2 group" title="Google Calendar API">
+          <svg class="w-7 h-7 text-[#4285F4] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Calendar</span>
+        </div>
+
+        <!-- Google Sheets -->
+        <div class="flex flex-col items-center gap-2 group" title="Google Sheets API">
+          <svg class="w-7 h-7 text-[#34A853] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 9v12"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Sheets</span>
+        </div>
+
+        <!-- Google Tasks -->
+        <div class="flex flex-col items-center gap-2 group" title="Google Tasks API">
+          <svg class="w-7 h-7 text-[#FBBC04] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Tasks</span>
+        </div>
+
+        <!-- Google Drive -->
+        <div class="flex flex-col items-center gap-2 group" title="Google Drive API">
+          <svg class="w-7 h-7 text-[#E6EDF3] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2L2 19h20L12 2z"/><path d="M7.5 11h9"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Drive</span>
+        </div>
+
+        <!-- Gemini AI -->
+        <div class="flex flex-col items-center gap-2 group" title="Gemini AI Orchestration">
+          <svg class="w-7 h-7 text-[#A371F7] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span class="font-mono text-[10px] text-[#8B949E]">Gemini AI</span>
+        </div>
+      </div>
+
+      <!-- Pause/Play toggle button on right matching Screenshot 3 -->
+      <button type="button" id="strip-toggle-btn" onclick="toggleIconStrip()"
+        class="hidden sm:flex items-center justify-center w-8 h-8 rounded-full border border-[#30363D] bg-[#0D1117] text-[#8B949E] hover:text-[#F0F6FC] absolute right-8 top-1/2 -translate-y-1/2 cursor-pointer"
+        aria-label="Toggle integration strip">
+        <span id="strip-toggle-icon" class="font-mono text-[10px]">||</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 7. SECTION HEADLINE + 2-COLUMN INTERACTIVE ACCORDION (Screenshots 3 & 4) -->
+  <section class="w-full border-b border-[#21262D]">
+    <!-- Centered Bold Headline Row -->
+    <div class="max-w-[1280px] mx-auto border-x border-b border-[#21262D] px-6 py-16 sm:py-20 text-center">
+      <h2 class="display-hero text-[32px] sm:text-[42px] font-semibold text-[#F0F6FC] leading-tight">
+        Work with D25 from inbox to execution
+      </h2>
+    </div>
+
+    <!-- 2-Column Interactive Accordion + Live Preview Panel -->
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] grid grid-cols-1 lg:grid-cols-2">
+      
+      <!-- Left Column: 4 Clickable Accordion Items -->
+      <div class="px-6 sm:px-12 py-10 sm:py-14 border-b lg:border-b-0 lg:border-r border-[#21262D] flex flex-col justify-center">
+        <div class="divide-y divide-[#21262D]" id="feature-accordion">
+          
+          <!-- Item 0 (Expanded by default) -->
+          <div class="py-5 first:pt-0">
+            <button type="button" onclick="setAccordion(0)" class="w-full flex items-center justify-between text-left gap-4 cursor-pointer group">
+              <span id="acc-title-0" class="text-[17px] font-semibold text-[#F0F6FC]">
+                Start from an email or calendar invite
+              </span>
+              <svg id="acc-chevron-0" class="w-4 h-4 text-[#F0F6FC] transition-transform rotate-180 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="acc-body-0" class="mt-3 space-y-3">
+              <p class="text-[14px] text-[#8B949E] leading-relaxed">
+                Open a D25 session with the email thread, schedule context, and spreadsheet data already connected.
+              </p>
+              <button type="button" onclick="triggerGoogleOAuth(this)" class="inline-flex items-center gap-1 text-[13px] font-medium text-[#58A6FF] hover:underline cursor-pointer">
+                <span>Continue with Google</span>
+                <span>&rsaquo;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 1 -->
+          <div class="py-5">
+            <button type="button" onclick="setAccordion(1)" class="w-full flex items-center justify-between text-left gap-4 cursor-pointer group">
+              <span id="acc-title-1" class="text-[17px] font-semibold text-[#8B949E] group-hover:text-[#F0F6FC] transition-colors">
+                Chain cross-app workflows
+              </span>
+              <svg id="acc-chevron-1" class="w-4 h-4 text-[#8B949E] transition-transform shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="acc-body-1" class="hidden mt-3 space-y-3">
+              <p class="text-[14px] text-[#8B949E] leading-relaxed">
+                Convert email action items into Google Tasks, log attachments into Google Sheets, and schedule follow-up events in one turn.
+              </p>
+              <button type="button" onclick="triggerGoogleOAuth(this)" class="inline-flex items-center gap-1 text-[13px] font-medium text-[#58A6FF] hover:underline cursor-pointer">
+                <span>Try cross-app workflows</span>
+                <span>&rsaquo;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="py-5">
+            <button type="button" onclick="setAccordion(2)" class="w-full flex items-center justify-between text-left gap-4 cursor-pointer group">
+              <span id="acc-title-2" class="text-[17px] font-semibold text-[#8B949E] group-hover:text-[#F0F6FC] transition-colors">
+                Control every change with Approval Cards
+              </span>
+              <svg id="acc-chevron-2" class="w-4 h-4 text-[#8B949E] transition-transform shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="acc-body-2" class="hidden mt-3 space-y-3">
+              <p class="text-[14px] text-[#8B949E] leading-relaxed">
+                Preview recipient lists, email drafts, calendar modifications, and task updates before D25 writes anything to your account.
+              </p>
+              <button type="button" onclick="openModal('scopes')" class="inline-flex items-center gap-1 text-[13px] font-medium text-[#58A6FF] hover:underline cursor-pointer">
+                <span>Inspect approval safeguards</span>
+                <span>&rsaquo;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="py-5 last:pb-0">
+            <button type="button" onclick="setAccordion(3)" class="w-full flex items-center justify-between text-left gap-4 cursor-pointer group">
+              <span id="acc-title-3" class="text-[17px] font-semibold text-[#8B949E] group-hover:text-[#F0F6FC] transition-colors">
+                Audit &amp; undo actions anytime
+              </span>
+              <svg id="acc-chevron-3" class="w-4 h-4 text-[#8B949E] transition-transform shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="acc-body-3" class="hidden mt-3 space-y-3">
+              <p class="text-[14px] text-[#8B949E] leading-relaxed">
+                Every tool execution is logged in Activity History with timestamps, grounded source links, and 1-click reversal for supported Calendar and Task updates.
+              </p>
+              <button type="button" onclick="openModal('architecture')" class="inline-flex items-center gap-1 text-[13px] font-medium text-[#58A6FF] hover:underline cursor-pointer">
+                <span>Explore Activity History</span>
+                <span>&rsaquo;</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Dynamic Preview Card inside Dark Emerald-Grid Container (Screenshot 4) -->
+      <div class="emerald-grid-subtle p-6 sm:p-10 lg:p-12 flex items-center justify-center min-h-[420px]">
+        <div id="accordion-preview-panel" class="w-full max-w-md">
+          <!-- Populated dynamically by setAccordion() -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 8. CLEAN BOTTOM CTA FOOTER -->
+  <footer class="w-full bg-[#010409]">
+    <div class="max-w-[1280px] mx-auto border-x border-[#21262D] px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full bg-[#F0F6FC] text-[#010409] flex items-center justify-center font-mono font-bold text-[11px]">
+          D25
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-[#F0F6FC]">D25 Assistant</div>
+          <div class="text-xs text-[#8B949E]">One Assistant. Multiple Workspaces. Smarter Productivity.</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-5 text-xs text-[#8B949E]">
+        <button type="button" onclick="openModal('privacy')" class="hover:text-[#F0F6FC] transition-colors cursor-pointer">
+          Privacy
+        </button>
+        <button type="button" onclick="openModal('scopes')" class="hover:text-[#F0F6FC] transition-colors cursor-pointer">
+          OAuth Scopes Modal
+        </button>
+        <button type="button" onclick="openModal('architecture')" class="hover:text-[#F0F6FC] transition-colors cursor-pointer">
+          Architecture
+        </button>
+        <button type="button" onclick="triggerGoogleOAuth(this)"
+          class="btn-oauth-white h-8 px-3.5 rounded-[6px] text-xs font-semibold flex items-center gap-2 cursor-pointer">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+          </svg>
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 9. OAUTH SCOPES / PRIVACY / ARCHITECTURE MODAL -->
+  <div id="d25-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4" onclick="if(event.target===this) closeModal()">
+    <div class="w-full max-w-xl rounded-[10px] border border-[#30363D] bg-[#0D1117] shadow-2xl overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-[#21262D] bg-[#010409] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="modal-tag" class="eyebrow-mono text-[#3FB950]">OAUTH 2.0</span>
+          <span class="text-[#30363D]">&middot;</span>
+          <h3 id="modal-heading" class="text-sm font-semibold text-[#F0F6FC]">Requested Workspace Scopes</h3>
+        </div>
+        <button type="button" onclick="closeModal()" class="text-[#8B949E] hover:text-[#F0F6FC] p-1 cursor-pointer" aria-label="Close modal">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="modal-content" class="p-5 text-xs text-[#8B949E] space-y-3 leading-relaxed max-h-[70vh] overflow-y-auto app-scroll">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="px-5 py-3 border-t border-[#21262D] bg-[#010409] flex items-center justify-between">
+        <span class="font-mono text-[11px] text-[#6E7681]">Google Cloud Project: D25</span>
+        <button type="button" onclick="closeModal()" class="btn-gh-secondary px-3.5 py-1.5 rounded-[6px] text-xs font-medium cursor-pointer">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Saved sessions data for the 3-Pane Showcase
+    const sessionsData = [
+      {
+        title: 'Q4 Budget & HR Follow-up',
+        mode: 'Plan Mode',
+        userMsg: "Check HR's Q4 sync email, verify our Friday afternoon availability, cross-check Hiring_Tracker_2026, and prepare the calendar invite for approval.",
+        traces: [
+          { icon: '>_', color: '#3FB950', label: 'Search Gmail:', detail: '"Q4 sync HR"' },
+          { icon: '○', color: '#6E7681', label: 'Thought for 3s', detail: '' },
+          { icon: '📅', color: '#58A6FF', label: 'Read Calendar:', detail: 'Friday, Nov 27 availability' },
+          { icon: '📊', color: '#3FB950', label: 'Inspect Sheet:', detail: 'Hiring_Tracker_2026!A1:D18' }
+        ],
+        planSummary: 'Cross-app meeting & task workflow ready. Review Approval #25 on the right before sending invites.',
+        approvalTitle: 'Schedule Q4 Hiring Sync & Send Confirmation',
+        approvalId: '#25',
+        services: 'Gmail + Calendar',
+        sourceSender: 'hr@company.com',
+        sourceTime: '14m ago',
+        sourceSubject: 'Grounded Source · Re: Q4 Sync Availability',
+        sourceQuote: '"Friday, Nov 27 at 3:00 PM IST works for the entire hiring panel. Please send the calendar invite and confirm headcount from Hiring_Tracker_2026."',
+        details: [
+          ['Event:', 'Q4 Hiring Sync'],
+          ['When:', 'Fri, Nov 27 · 15:00 – 15:45 IST'],
+          ['Guests:', 'hr@company.com, lead@company.com']
+        ]
+      },
+      {
+        title: 'Weekly Schedule Sync',
+        mode: 'Act Mode',
+        userMsg: '@Calendar @Tasks Reschedule tomorrow’s design review to Thursday at 11:00 AM and add a prep task.',
+        traces: [
+          { icon: '📅', color: '#58A6FF', label: 'Search Calendar:', detail: '"Design Review"' },
+          { icon: '○', color: '#6E7681', label: 'Thought for 2s', detail: '' },
+          { icon: '✓', color: '#D29922', label: 'Prepare Task:', detail: 'Finalize Figma deck before Thu' }
+        ],
+        planSummary: 'Calendar update and paired Google Task prepared. Confirm below to notify attendees.',
+        approvalTitle: 'Move Design Review & Create Prep Task',
+        approvalId: '#26',
+        services: 'Calendar + Tasks',
+        sourceSender: 'calendar@google.com',
+        sourceTime: 'Primary Calendar',
+        sourceSubject: 'Grounded Source · Existing Event Match',
+        sourceQuote: '"Weekly Design Review — Currently scheduled Wed 14:00–14:45 with 4 attendees."',
+        details: [
+          ['New Time:', 'Thu, Nov 26 · 11:00 – 11:45 IST'],
+          ['Task:', 'Finalize Figma deck (Due Thu)'],
+          ['Notify:', 'Send update to 4 guests']
+        ]
+      },
+      {
+        title: 'Sales Sheet Cleanup',
+        mode: 'Ask Mode',
+        userMsg: '@Sheets Summarize Q4 regional revenue from Sales_Pipeline_Q4 and highlight rows below target.',
+        traces: [
+          { icon: '📊', color: '#3FB950', label: 'Find Spreadsheet:', detail: '"Sales_Pipeline_Q4"' },
+          { icon: '○', color: '#6E7681', label: 'Thought for 2s', detail: '' },
+          { icon: '>_', color: '#3FB950', label: 'Read Range:', detail: 'Summary!A2:F24 (Read-only)' }
+        ],
+        planSummary: 'Read-only inspection complete. 3 regions flagged below Q4 quota; optional chart creation queued.',
+        approvalTitle: 'Generate Regional Variance Chart in Sheet',
+        approvalId: '#27',
+        services: 'Google Sheets',
+        sourceSender: 'Sales_Pipeline_Q4',
+        sourceTime: 'Tab: Summary',
+        sourceSubject: 'Grounded Source · Range A2:F24',
+        sourceQuote: '"APAC: $142k (108% target) · EMEA: $98k (84% target) · NA: $210k (102% target)."',
+        details: [
+          ['Sheet:', 'Sales_Pipeline_Q4 (Tab: Summary)'],
+          ['Action:', 'Insert Bar Chart (Regional Q4)'],
+          ['Export:', 'PDF summary ready on approval']
+        ]
+      },
+      {
+        title: 'Inbox Triage & Tasks',
+        mode: 'Plan Mode',
+        userMsg: '@Gmail @Tasks Summarize unread client emails from today and draft replies for urgent threads.',
+        traces: [
+          { icon: '>_', color: '#EA4335', label: 'Search Gmail:', detail: 'is:unread newer_than:1d' },
+          { icon: '○', color: '#6E7681', label: 'Thought for 4s', detail: '' },
+          { icon: '✓', color: '#D29922', label: 'Queue Tasks:', detail: '2 follow-up items extracted' }
+        ],
+        planSummary: 'Found 4 unread threads (2 urgent). Reply draft to Acme Corp is ready for approval.',
+        approvalTitle: 'Send Reply to Acme Corp & Log Follow-up',
+        approvalId: '#28',
+        services: 'Gmail + Tasks',
+        sourceSender: 'procurement@acmecorp.io',
+        sourceTime: '1h ago',
+        sourceSubject: 'Grounded Source · SOW Addendum #12',
+        sourceQuote: '"Can you confirm whether the revised delivery milestones work for your engineering team by EOD?"',
+        details: [
+          ['To:', 'procurement@acmecorp.io'],
+          ['Subject:', 'Re: SOW Addendum #12'],
+          ['Task:', 'Review signed SOW on Friday']
+        ]
+      }
+    ];
+
+    let currentSessionIdx = 0;
+    let actionState = 'pending'; // 'pending' | 'approved' | 'rejected'
+
+    function selectSession(idx) {
+      currentSessionIdx = idx;
+      actionState = 'pending';
+
+      // Update sidebar session highlights
+      for (let i = 0; i < sessionsData.length; i++) {
+        const btn = document.getElementById(`sess-btn-${i}`);
+        if (i === idx) {
+          btn.className = 'w-full text-left px-2.5 py-1.5 rounded-[6px] bg-[#161B22] text-[#F0F6FC] font-medium flex items-center gap-2 truncate cursor-pointer';
+        } else {
+          btn.className = 'w-full text-left px-2.5 py-1.5 rounded-[6px] text-[#8B949E] hover:bg-[#161B22]/50 hover:text-[#E6EDF3] flex items-center gap-2 truncate cursor-pointer';
+        }
+      }
+
+      const s = sessionsData[idx];
+      document.getElementById('center-session-title').textContent = s.title;
+      document.getElementById('center-mode-pill').textContent = s.mode;
+      document.getElementById('center-user-bubble').textContent = s.userMsg;
+      document.getElementById('center-plan-desc').textContent = s.planSummary;
+
+      document.getElementById('center-trace-list').innerHTML = s.traces.map(t => `
+        <div class="flex items-center gap-2">
+          <span style="color:${t.color}">${t.icon}</span>
+          <span>${t.label} ${t.detail ? `<span class="text-[#E6EDF3]">${t.detail}</span>` : ''}</span>
+        </div>
+      `).join('');
+
+      renderApprovalPane();
+    }
+
+    function renderApprovalPane() {
+      const s = sessionsData[currentSessionIdx];
+      document.getElementById('approval-title').innerHTML = `${s.approvalTitle} <span class="text-[#8B949E] font-normal">${s.approvalId}</span>`;
+      document.getElementById('approval-source-quote').textContent = s.sourceQuote;
+
+      document.getElementById('approval-details-box').innerHTML = s.details.map(([k, v]) => `
+        <div><span class="text-[#6E7681]">${k}</span> <span class="text-[#E6EDF3]">${v}</span></div>
+      `).join('');
+
+      const pill = document.getElementById('approval-status-pill');
+      const bar = document.getElementById('approval-action-bar');
+
+      if (actionState === 'pending') {
+        pill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#238636] text-white';
+        pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-white"></span>Pending Approval';
+        bar.innerHTML = `
+          <button type="button" onclick="approveWorkspaceAction()"
+            class="btn-gh-green flex-1 h-9 px-3 rounded-[6px] text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Approve &amp; Run</span>
+          </button>
+          <button type="button" onclick="rejectWorkspaceAction()"
+            class="btn-gh-secondary h-9 px-3.5 rounded-[6px] text-xs font-medium text-[#E6EDF3] cursor-pointer">
+            Reject
+          </button>
+        `;
+      } else if (actionState === 'approved') {
+        pill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#1F6FEB] text-white';
+        pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-white"></span>Executed &middot; Logged';
+        bar.innerHTML = `
+          <div class="flex-1 text-xs text-[#3FB950] font-medium flex items-center gap-1.5">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Completed in Workspace</span>
+          </div>
+          <button type="button" onclick="undoWorkspaceAction()"
+            class="btn-gh-secondary h-8 px-3 rounded-[6px] font-mono text-xs text-[#F0F6FC] cursor-pointer">
+            Undo Action
+          </button>
+        `;
+      } else {
+        pill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#21262D] text-[#8B949E] border border-[#30363D]';
+        pill.innerHTML = 'Cancelled';
+        bar.innerHTML = `
+          <span class="flex-1 text-xs text-[#8B949E]">Action discarded — no Workspace changes made.</span>
+          <button type="button" onclick="undoWorkspaceAction()"
+            class="btn-gh-secondary h-8 px-3 rounded-[6px] font-mono text-xs text-[#F0F6FC] cursor-pointer">
+            Restore
+          </button>
+        `;
+      }
+    }
+
+    function approveWorkspaceAction() {
+      actionState = 'approved';
+      renderApprovalPane();
+    }
+
+    function rejectWorkspaceAction() {
+      actionState = 'rejected';
+      renderApprovalPane();
+    }
+
+    function undoWorkspaceAction() {
+      actionState = 'pending';
+      renderApprovalPane();
+    }
+
+    // Composer interactivity inside 3-Pane Showcase
+    const composerModes = ['Ask', 'Plan', 'Act'];
+    let composerModeIndex = 1;
+
+    function cycleComposerMode() {
+      composerModeIndex = (composerModeIndex + 1) % composerModes.length;
+      const modeName = composerModes[composerModeIndex];
+      document.getElementById('composer-mode-label').textContent = modeName;
+      document.getElementById('center-mode-pill').textContent = `${modeName} Mode`;
+    }
+
+    function insertMention(tag) {
+      const input = document.getElementById('demo-composer-input');
+      input.value = (input.value + ' ' + tag).trim() + ' ';
+      input.focus();
+    }
+
+    function handleDemoSend() {
+      const input = document.getElementById('demo-composer-input');
+      const val = input.value.trim();
+      if (!val) return;
+      document.getElementById('center-user-bubble').textContent = val;
+      document.getElementById('center-trace-list').innerHTML = `
+        <div class="flex items-center gap-2"><span class="text-[#3FB950]">&gt;_</span><span>Parsing intent &amp; @mentions...</span></div>
+        <div class="flex items-center gap-2"><span class="text-[#6E7681]">&#9675;</span><span>Thought for 1s</span></div>
+        <div class="flex items-center gap-2"><span class="text-[#58A6FF]">&#10003;</span><span>Grounded response ready (${composerModes[composerModeIndex]} Mode)</span></div>
+      `;
+      input.value = '';
+    }
+
+    function focusComposerSearch() {
+      const el = document.getElementById('demo-composer-input');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => el.focus(), 300);
+    }
+
+    // Keyboard '/' shortcut to focus command input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        focusComposerSearch();
+      } else if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // Interactive Feature Accordion + Dynamic Preview Panel (Screenshot 4)
+    const accordionPreviews = [
+      `
+        <div class="rounded-[10px] border border-[#30363D] bg-[#0D1117] p-5 shadow-xl relative">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-[11px] text-[#8B949E]">D25 Session Launcher</span>
+            <div class="inline-flex items-center rounded-[6px] border border-[#30363D] bg-[#161B22] text-xs font-medium text-[#F0F6FC] overflow-hidden">
+              <span class="px-3 py-1.5">New session</span>
+              <span class="px-2 py-1.5 border-l border-[#30363D] text-[#8B949E]">&#9662;</span>
+            </div>
+          </div>
+
+          <div class="rounded-[8px] border border-[#30363D] bg-[#161B22] p-3.5 mb-3">
+            <div class="text-[15px] font-semibold text-[#F0F6FC] leading-snug">
+              Q4 Hiring Sync &amp; Budget Review <span class="text-[#8B949E] font-normal">#25</span>
+            </div>
+            <div class="mt-2 flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#238636] text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>Connected
+              </span>
+              <span class="text-[11px] text-[#8B949E]">hr@company.com &middot; 2 threads</span>
+            </div>
+          </div>
+
+          <!-- Floating Dropdown Menu styled like Screenshot 4 -->
+          <div class="ml-auto w-64 rounded-[8px] border border-[#30363D] bg-[#161B22] p-1.5 shadow-2xl space-y-1 text-xs">
+            <div class="px-2.5 py-2 rounded-[6px] bg-[#21262D] text-[#F0F6FC] font-medium flex items-center gap-2.5">
+              <span class="text-[#8B949E]">+</span>
+              <span>New session</span>
+            </div>
+            <div class="px-2.5 py-2 rounded-[6px] text-[#E6EDF3] hover:bg-[#21262D]/60 flex items-center gap-2.5">
+              <span class="text-[#3FB950] font-mono">@</span>
+              <span>Gmail + Calendar context</span>
+            </div>
+            <div class="px-2.5 py-2 rounded-[6px] text-[#E6EDF3] hover:bg-[#21262D]/60 flex items-center gap-2.5">
+              <span class="text-[#58A6FF] font-mono">&amp;</span>
+              <span>Attach saved chat history</span>
+            </div>
+          </div>
+        </div>
+      `,
+      `
+        <div class="rounded-[10px] border border-[#30363D] bg-[#0D1117] p-5 shadow-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-[#21262D] pb-3">
+            <span class="font-mono text-[11px] text-[#3FB950]">CROSS-APP WORKFLOW CHAIN</span>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[#8B949E]">3 Services</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 rounded-[6px] border border-[#21262D] bg-[#161B22] flex items-center justify-between">
+              <span class="text-[#E6EDF3]"><strong class="text-[#EA4335] font-mono">1. @Gmail</strong> Extract invoice PDF table</span>
+              <span class="font-mono text-[10px] text-[#3FB950]">Done</span>
+            </div>
+            <div class="p-2.5 rounded-[6px] border border-[#21262D] bg-[#161B22] flex items-center justify-between">
+              <span class="text-[#E6EDF3]"><strong class="text-[#34A853] font-mono">2. @Sheets</strong> Append rows to Q4_Expenses</span>
+              <span class="font-mono text-[10px] text-[#3FB950]">Done</span>
+            </div>
+            <div class="p-2.5 rounded-[6px] border border-[#3FB950]/40 bg-[#07130E] flex items-center justify-between">
+              <span class="text-[#F0F6FC]"><strong class="text-[#FBBC04] font-mono">3. @Tasks</strong> Remind Finance on Friday</span>
+              <span class="font-mono text-[10px] text-[#3FB950]">Ready</span>
+            </div>
+          </div>
+        </div>
+      `,
+      `
+        <div class="rounded-[10px] border border-[#30363D] bg-[#0D1117] p-5 shadow-xl space-y-3.5">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-[11px] text-[#8B949E]">APPROVAL GATEWAY</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#238636] text-white">Human-in-the-loop</span>
+          </div>
+          <div class="rounded-[6px] border border-[#21262D] bg-[#010409] p-3 font-mono text-[11px] space-y-1.5">
+            <div class="text-[#8B949E]">Action: <span class="text-[#F0F6FC]">gmail.users.messages.send</span></div>
+            <div class="text-[#8B949E]">Recipient: <span class="text-[#58A6FF]">hr@company.com</span></div>
+            <div class="text-[#8B949E]">Policy: <span class="text-[#3FB950]">Explicit confirmation required</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="flex-1 h-8 rounded-[6px] bg-[#238636] text-white text-xs font-semibold flex items-center justify-center">Approve &amp; Send</span>
+            <span class="h-8 px-3 rounded-[6px] bg-[#21262D] border border-[#30363D] text-xs text-[#E6EDF3] flex items-center justify-center">Edit Draft</span>
+          </div>
+        </div>
+      `,
+      `
+        <div class="rounded-[10px] border border-[#30363D] bg-[#0D1117] p-5 shadow-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-[#21262D] pb-3">
+            <span class="font-mono text-[11px] text-[#8B949E]">ACTIVITY HISTORY &amp; UNDO</span>
+            <span class="font-mono text-[10px] text-[#3FB950]">Audit Log</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 rounded-[6px] border border-[#21262D] bg-[#161B22] flex items-center justify-between gap-2">
+              <div>
+                <div class="text-[#F0F6FC] font-medium">Calendar Event Created</div>
+                <div class="font-mono text-[10px] text-[#8B949E]">Q4 Hiring Sync &middot; 2m ago</div>
+              </div>
+              <span class="px-2 py-1 rounded bg-[#21262D] border border-[#30363D] font-mono text-[10px] text-[#F0F6FC]">Undo</span>
+            </div>
+            <div class="p-2.5 rounded-[6px] border border-[#21262D] bg-[#161B22] flex items-center justify-between gap-2">
+              <div>
+                <div class="text-[#F0F6FC] font-medium">Google Task Updated</div>
+                <div class="font-mono text-[10px] text-[#8B949E]">Follow up with HR &middot; 9m ago</div>
+              </div>
+              <span class="px-2 py-1 rounded bg-[#21262D] border border-[#30363D] font-mono text-[10px] text-[#F0F6FC]">Undo</span>
+            </div>
+          </div>
+        </div>
+      `
+    ];
+
+    function setAccordion(index) {
+      for (let i = 0; i < 4; i++) {
+        const title = document.getElementById(`acc-title-${i}`);
+        const body = document.getElementById(`acc-body-${i}`);
+        const chev = document.getElementById(`acc-chevron-${i}`);
+        if (i === index) {
+          title.className = 'text-[17px] font-semibold text-[#F0F6FC]';
+          body.classList.remove('hidden');
+          chev.classList.add('rotate-180', 'text-[#F0F6FC]');
+          chev.classList.remove('text-[#8B949E]');
+        } else {
+          title.className = 'text-[17px] font-semibold text-[#8B949E] group-hover:text-[#F0F6FC] transition-colors';
+          body.classList.add('hidden');
+          chev.classList.remove('rotate-180', 'text-[#F0F6FC]');
+          chev.classList.add('text-[#8B949E]');
+        }
+      }
+      document.getElementById('accordion-preview-panel').innerHTML = accordionPreviews[index];
+    }
+
+    // Icon strip pause/play toggle
+    let stripActive = true;
+    function toggleIconStrip() {
+      stripActive = !stripActive;
+      const strip = document.getElementById('workspace-icon-strip');
+      const icon = document.getElementById('strip-toggle-icon');
+      strip.style.opacity = stripActive ? '1' : '0.45';
+      icon.textContent = stripActive ? '||' : '▶';
+    }
+
+    // Google OAuth Sign-In Handler
+    function triggerGoogleOAuth() {
+      window.location.assign('/api/auth/login');
+    }
+
+    // Modal Content for OAuth Scopes, Privacy, and Architecture
+    const modalTemplates = {
+      scopes: {
+        tag: 'OAUTH 2.0 SCOPES',
+        heading: 'D25 Requested Workspace Permissions',
+        body: `
+          <p class="text-[#8B949E]">D25 authenticates via your personal Google Cloud project (<strong class="text-[#F0F6FC] font-mono">D25</strong>). Read operations work in Ask/Plan modes, while write operations require explicit UI Approval Cards.</p>
+          <div class="rounded-[6px] border border-[#21262D] bg-[#010409] divide-y divide-[#21262D] font-mono text-[11px]">
+            <div class="p-3 flex items-center justify-between gap-2">
+              <span class="text-[#F0F6FC]">.../auth/gmail.modify</span>
+              <span class="text-[#8B949E]">Search, read, draft, send &amp; archive</span>
+            </div>
+            <div class="p-3 flex items-center justify-between gap-2">
+              <span class="text-[#F0F6FC]">.../auth/calendar</span>
+              <span class="text-[#8B949E]">Read, create, update &amp; cancel events</span>
+            </div>
+            <div class="p-3 flex items-center justify-between gap-2">
+              <span class="text-[#F0F6FC]">.../auth/spreadsheets</span>
+              <span class="text-[#8B949E]">Read, edit, sort, chart &amp; export sheets</span>
+            </div>
+            <div class="p-3 flex items-center justify-between gap-2">
+              <span class="text-[#F0F6FC]">.../auth/tasks</span>
+              <span class="text-[#8B949E]">Create, complete &amp; manage Google Tasks</span>
+            </div>
+          </div>
+        `
+      },
+      privacy: {
+        tag: 'SECURITY & PRIVACY',
+        heading: 'Account Isolation & User Control',
+        body: `
+          <ul class="space-y-2.5 border-l-2 border-[#238636] pl-3.5 text-[#E6EDF3]">
+            <li><strong>Per-Account Session Storage:</strong> OAuth tokens, chat history, and saved preferences are isolated per signed-in Google account.</li>
+            <li><strong>Approval-First Execution:</strong> Sending emails, modifying calendar invites, and updating tasks are blocked until you click <em>Approve &amp; Run</em>.</li>
+            <li><strong>Grounded Source Verification:</strong> Every factual claim attaches verifiable Gmail, Calendar, or Sheets source cards.</li>
+          </ul>
+        `
+      },
+      architecture: {
+        tag: 'SYSTEM ARCHITECTURE',
+        heading: 'D25 Modular Python & Web Stack',
+        body: `
+          <p class="text-[#8B949E]">User &rarr; Web Chat Interface (<span class="font-mono text-[#F0F6FC]">index.html</span>) &rarr; <span class="font-mono text-[#F0F6FC]">backend.py</span> &rarr; Gemini Model &rarr; Tool Modules &rarr; Google Workspace APIs.</p>
+          <div class="rounded-[6px] border border-[#21262D] bg-[#010409] divide-y divide-[#21262D] font-mono text-[11px]">
+            <div class="p-2.5 flex justify-between"><span class="text-[#3FB950]">backend.py</span><span>AI orchestration, Ask/Plan/Act routing &amp; approvals</span></div>
+            <div class="p-2.5 flex justify-between"><span class="text-[#58A6FF]">calendar_tools.py</span><span>Event scheduling, updates &amp; undo snapshots</span></div>
+            <div class="p-2.5 flex justify-between"><span class="text-[#34A853]">sheets_tools.py</span><span>Range reads, edits, charts, filters &amp; exports</span></div>
+            <div class="p-2.5 flex justify-between"><span class="text-[#EA4335]">gmail_tools.py</span><span>Thread summaries, drafts, sends &amp; trusted contacts</span></div>
+          </div>
+        `
+      }
+    };
+
+    function openModal(type) {
+      const m = modalTemplates[type];
+      if (!m) return;
+      document.getElementById('modal-tag').textContent = m.tag;
+      document.getElementById('modal-heading').textContent = m.heading;
+      document.getElementById('modal-content').innerHTML = m.body;
+      const modal = document.getElementById('d25-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('d25-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Initialize default interactive states on load
+    selectSession(0);
+    setAccordion(0);
+  </script>
+</body>
+</html>
